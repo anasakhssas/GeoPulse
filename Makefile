@@ -1,82 +1,50 @@
-# GeoPulse Pipeline Management
+# GeoPulse Pipeline Management (Simplified)
 
-.PHONY: help build up down restart logs clean status sample-data
+.PHONY: help build up down restart logs clean status
 
 help:
-	@echo "GeoPulse Pipeline Management"
+	@echo "GeoPulse Dashboard Management"
 	@echo ""
 	@echo "Available commands:"
-	@echo "  build      - Build all Docker images"
-	@echo "  up         - Start the entire pipeline"
-	@echo "  down       - Stop the entire pipeline"
-	@echo "  restart    - Restart all services"
-	@echo "  logs       - View logs from all services"
-	@echo "  clean      - Clean up containers and volumes"
-	@echo "  status     - Show status of all services"
-	@echo "  sample-data - Add sample data for testing"
-
-build:
-	@echo "Building Docker images..."
-	docker-compose build
+	@echo "  up         - Start the dashboard"
+	@echo "  down       - Stop the dashboard"
+	@echo "  restart    - Restart the dashboard"
+	@echo "  logs       - View dashboard logs"
+	@echo "  clean      - Clean up containers"
+	@echo "  status     - Show dashboard status"
 
 up:
-	@echo "Starting GeoPulse pipeline..."
+	@echo "Starting GeoPulse dashboard..."
 	docker-compose up -d
-	@echo "Services starting..."
+	@echo "Dashboard starting..."
 	@echo "Dashboard will be available at: http://localhost:8501"
-	@echo "Spark UI available at: http://localhost:8080"
 
 down:
-	@echo "Stopping GeoPulse pipeline..."
+	@echo "Stopping GeoPulse dashboard..."
 	docker-compose down
 
 restart:
-	@echo "Restarting GeoPulse pipeline..."
+	@echo "Restarting GeoPulse dashboard..."
 	docker-compose restart
 
 logs:
-	@echo "Showing logs from all services..."
+	@echo "Showing dashboard logs..."
 	docker-compose logs -f
 
-logs-streamlit:
-	@echo "Showing Streamlit logs..."
-	docker-compose logs -f streamlit
-
-logs-spark:
-	@echo "Showing Spark logs..."
-	docker-compose logs -f spark-master spark-worker data-processor
-
-logs-postgres:
-	@echo "Showing PostgreSQL logs..."
-	docker-compose logs -f postgres
-
 clean:
-	@echo "Cleaning up containers and volumes..."
-	docker-compose down -v
+	@echo "Cleaning up containers..."
+	docker-compose down
 	docker system prune -f
 
 status:
-	@echo "Service status:"
+	@echo "Dashboard status:"
 	docker-compose ps
 
-sample-data:
-	@echo "Sample data already available in data/input/sample_clients.csv"
-	@echo "You can add more CSV files to data/input/ directory"
-
-# Development commands
-dev-shell:
-	docker-compose exec data-processor /bin/bash
-
-db-shell:
-	docker-compose exec postgres psql -U geopulse_user -d geopulse
-
 # Quick start
-start: build up
+start: up
 	@echo ""
-	@echo "🚀 GeoPulse is starting up!"
+	@echo "🚀 GeoPulse Dashboard is starting!"
 	@echo ""
 	@echo "📊 Dashboard: http://localhost:8501"
-	@echo "⚡ Spark UI: http://localhost:8080"
-	@echo "🗄️  Database: localhost:5432"
 	@echo ""
-	@echo "💡 Add CSV files to data/input/ to see them processed automatically!"
+	@echo "💡 Add CSV files to data/input/ to see them in the dashboard!"

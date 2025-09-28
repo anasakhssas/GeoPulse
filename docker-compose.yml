@@ -1,113 +1,17 @@
-version: '3.8'
-
 services:
-  # PostgreSQL Database
-  postgres:
-    image: postgres:15
-    container_name: geopulse_postgres
-    environment:
-      POSTGRES_DB: geopulse
-      POSTGRES_USER: geopulse_user
-      POSTGRES_PASSWORD: geopulse_password
-    ports:
-      - "5432:5432"
-    volumes:
-      - postgres_data:/var/lib/postgresql/data
-      - ./postgres/init.sql:/docker-entrypoint-initdb.d/init.sql
-    networks:
-      - geopulse_network
-
-  # PySpark Data Processing
-  spark-master:
-    build: 
-      context: ./spark
-      dockerfile: Dockerfile
-    container_name: geopulse_spark_master
-    environment:
-      - SPARK_MODE=master
-      - SPARK_RPC_AUTHENTICATION_ENABLED=no
-      - SPARK_RPC_ENCRYPTION_ENABLED=no
-      - SPARK_LOCAL_STORAGE_ENCRYPTION_ENABLED=no
-      - SPARK_SSL_ENABLED=no
-    ports:
-      - "8080:8080"
-      - "7077:7077"
-    volumes:
-      - ./data:/app/data
-      - ./spark:/app/spark
-    depends_on:
-      - postgres
-    networks:
-      - geopulse_network
-
-  spark-worker:
-    build: 
-      context: ./spark
-      dockerfile: Dockerfile
-    container_name: geopulse_spark_worker
-    environment:
-      - SPARK_MODE=worker
-      - SPARK_MASTER_URL=spark://spark-master:7077
-      - SPARK_WORKER_MEMORY=1G
-      - SPARK_WORKER_CORES=1
-      - SPARK_RPC_AUTHENTICATION_ENABLED=no
-      - SPARK_RPC_ENCRYPTION_ENABLED=no
-      - SPARK_LOCAL_STORAGE_ENCRYPTION_ENABLED=no
-      - SPARK_SSL_ENABLED=no
-    volumes:
-      - ./data:/app/data
-      - ./spark:/app/spark
-    depends_on:
-      - spark-master
-    networks:
-      - geopulse_network
-
-  # Data Processing Job
-  data-processor:
-    build: 
-      context: ./spark
-      dockerfile: Dockerfile.processor
-    container_name: geopulse_processor
-    environment:
-      - POSTGRES_HOST=postgres
-      - POSTGRES_DB=geopulse
-      - POSTGRES_USER=geopulse_user
-      - POSTGRES_PASSWORD=geopulse_password
-      - SPARK_MASTER_URL=spark://spark-master:7077
-    volumes:
-      - ./data:/app/data
-      - ./spark:/app/spark
-    depends_on:
-      - postgres
-      - spark-master
-    networks:
-      - geopulse_network
-    restart: unless-stopped
-
-  # Streamlit Dashboard
-  streamlit:
-    build:
-      context: ./streamlit_app
-      dockerfile: Dockerfile
-    container_name: geopulse_dashboard
-    environment:
-      - POSTGRES_HOST=postgres
-      - POSTGRES_DB=geopulse
-      - POSTGRES_USER=geopulse_user
-      - POSTGRES_PASSWORD=geopulse_password
+  # Streamlit Dashboard (No Database)
+  dashboard:
+    image: python:3.11-slim
+    container_name: geopulse_simple_dashboard
+    working_dir: /app
     ports:
       - "8501:8501"
     volumes:
       - ./streamlit_app:/app
-    depends_on:
-      - postgres
-    networks:
-      - geopulse_network
+      - ./data:/app/data
+    command: >
+      bash -c "
+        pip install --no-cache-dir streamlit pandas plotly &&
+        streamlit run main.py --server.port=8501 --server.address=0.0.0.0
+      "
     restart: unless-stopped
-
-volumes:
-  postgres_data:
-
-networks:
-  geopulse_network:
-    driver: bridge

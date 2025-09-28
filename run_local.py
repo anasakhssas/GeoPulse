@@ -20,7 +20,7 @@ def main():
     print("=" * 40)
     
     # Check if we're in the right directory
-    if not Path("streamlit_app/simple_dashboard.py").exists():
+    if not Path("streamlit_app/main.py").exists():
         print("❌ Please run this from the geopulse project root directory")
         return
     
@@ -62,7 +62,7 @@ Giovanni Rossi,Italy,Rome,2024-01-19"""
     
     # Change to streamlit_app directory and run
     os.chdir("streamlit_app")
-    subprocess.run([sys.executable, '-m', 'streamlit', 'run', 'simple_dashboard.py'])
+    subprocess.run([sys.executable, '-m', 'streamlit', 'run', 'main.py'])
 
 if __name__ == "__main__":
     main()

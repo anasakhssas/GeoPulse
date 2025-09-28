@@ -1,208 +1,180 @@
-# GeoPulse - Real-time Client Analytics Pipeline
+# GeoPulse - Real-time Client Analytics Dashboard
 
-GeoPulse is an end-to-end data pipeline that automatically processes client data from CSV files and provides real-time analytics through an interactive dashboard.
+GeoPulse is a simplified, real-time client analytics dashboard that automatically reads CSV files and provides interactive visualizations without requiring a database.
 
 ## 🚀 Features
 
-- **Dockerized Infrastructure**: All components run in isolated Docker containers
-- **Automated Data Ingestion**: PySpark monitors input directory for new CSV files
-- **Real-time Processing**: Distributed data processing with Apache Spark
-- **Interactive Dashboard**: Streamlit-based visualization with two main views:
-  - Global client distribution by countries
+- **📊 Direct CSV Reading**: No database required - reads CSV files directly
+- **🔄 Auto-refresh**: Dashboard updates every 10 seconds when new CSV files are added
+- **🐳 Dockerized**: Single container deployment
+- **🌍 Interactive Visualizations**:
+  - Global client distribution with world map
   - City-level distribution with country filtering
-- **Data Persistence**: PostgreSQL database for reliable data storage
-- **Scalable Architecture**: Easy to scale with additional Spark workers
+- **📁 File Monitoring**: Automatically detects new CSV files in the input directory
+- **🎯 Simple Setup**: One command to start
 
 ## 📊 Data Schema
 
 CSV files should contain the following columns:
-- `id`: Client identifier
 - `name`: Client name
 - `country`: Client's country
-- `city`: Client's city
+- `city`: Client's city  
 - `date`: Registration/entry date (YYYY-MM-DD format)
 
-## 🏗️ Architecture
-
-```
-CSV Files → PySpark Processing → PostgreSQL → Streamlit Dashboard
-    ↓              ↓                  ↓             ↓
-data/input → Distributed ETL → Relational DB → Web Interface
+Example:
+```csv
+name,country,city,date
+John Doe,United States,New York,2024-01-15
+Jane Smith,United Kingdom,London,2024-01-16
 ```
 
 ## 🚀 Quick Start
 
 ### Prerequisites
 - Docker and Docker Compose installed
-- At least 4GB of available RAM
 
-### 1. Clone and Setup
-```bash
-cd geopulse
-```
-
-### 2. Start the Pipeline
+### 1. Start the Dashboard
 ```bash
 docker-compose up -d
 ```
 
-### 3. Access the Dashboard
-Open your browser and navigate to: `http://localhost:8501`
+### 2. Access the Dashboard
+Open your browser: `http://localhost:8501`
 
-### 4. Add Data
-Place CSV files in the `data/input/` directory. They will be automatically processed.
+### 3. Add Data
+Place CSV files in the `data/input/` directory - they will appear in the dashboard within 10 seconds!
 
 ## 📁 Project Structure
 
 ```
 geopulse/
-├── docker-compose.yml          # Container orchestration
-├── .env                       # Environment configuration
+├── docker-compose.yml         # Simple container setup
 ├── data/
-│   ├── input/                 # CSV files for processing
-│   └── processed/             # Successfully processed files
-├── spark/
-│   ├── Dockerfile             # Spark cluster image
-│   ├── Dockerfile.processor   # Data processor image
-│   └── data_processor.py      # Main processing logic
+│   └── input/                 # Place CSV files here
 ├── streamlit_app/
-│   ├── Dockerfile
-│   ├── main.py               # Dashboard main application
-│   ├── database.py           # Database connection manager
-│   └── requirements.txt
-└── postgres/
-    └── init.sql              # Database initialization
+│   ├── main.py               # Dashboard application
+│   └── requirements.txt      # Python dependencies
+├── run_local.py              # Run locally without Docker
+├── Makefile                  # Easy management commands
+└── README.md
 ```
 
-## 🔧 Services
+## �️ Configuration
 
-### PostgreSQL Database
-- **Port**: 5432
-- **Database**: geopulse
-- **User**: geopulse_user
-- **Password**: geopulse_password
+### Dashboard Features
+- **Auto-refresh**: Updates every 10 seconds
+- **Country Distribution**: Interactive world map with client counts
+- **City Distribution**: Filterable by country with detailed statistics
+- **File Monitoring**: Shows loaded CSV files and their status
 
-### Spark Cluster
-- **Master UI**: http://localhost:8080
-- **Master Port**: 7077
-- **Workers**: 1 (configurable)
+### Adding Data
+Simply drop CSV files into `data/input/` and watch them appear in the dashboard automatically!
 
-### Streamlit Dashboard
-- **URL**: http://localhost:8501
-- **Features**:
-  - Country distribution world map
-  - Top countries bar chart
-  - City-level filtering
-  - Real-time data refresh
+## 📝 Management Commands
 
-### Data Processor
-- Monitors `data/input/` directory
-- Validates CSV schema
-- Cleans and transforms data
-- Loads data into PostgreSQL
-- Moves processed files to `data/processed/`
+Using the included Makefile:
 
-## 📈 Dashboard Features
+```bash
+# Start dashboard
+make up
+
+# View logs
+make logs
+
+# Stop dashboard  
+make down
+
+# Restart
+make restart
+
+# Clean up
+make clean
+```
+
+## 🏠 Local Development
+
+Run without Docker:
+
+```bash
+python run_local.py
+```
+
+This will:
+- Install required Python packages
+- Create sample data if none exists
+- Start the dashboard on `http://localhost:8501`
+
+## 🧪 Testing
+
+Sample CSV files are included in `data/input/`. Try adding new files:
+
+```csv
+name,country,city,date
+Alice Johnson,Canada,Toronto,2024-01-20
+Bob Wilson,Australia,Sydney,2024-01-21
+```
+
+Watch the dashboard update automatically!
+
+## � Dashboard Features
 
 ### Country Distribution Page
 - Interactive world map showing client distribution
-- Top 10 countries bar chart
+- Top countries bar chart
 - Complete country statistics table
 
-### City Distribution Page
+### City Distribution Page  
 - Country filter dropdown
-- Horizontal bar chart for cities
-- Summary metrics
-- Detailed city statistics table
+- Horizontal bar chart for cities within selected country
+- Summary metrics and statistics
+- Detailed city information
 
-## 🛠️ Configuration
-
-### Environment Variables
-Edit `.env` file to customize:
-- Database credentials
-- Spark configuration
-- Processing intervals
-
-### Scaling
-Add more Spark workers in `docker-compose.yml`:
-```yaml
-spark-worker-2:
-  build: 
-    context: ./spark
-    dockerfile: Dockerfile
-  environment:
-    - SPARK_MODE=worker
-    - SPARK_MASTER_URL=spark://spark-master:7077
-  # ... other configurations
-```
-
-## 📝 Sample Data
-
-A sample CSV file is included in `data/input/sample_clients.csv` with 10 records from different countries.
-
-## 🔍 Monitoring
-
-- **Spark UI**: http://localhost:8080 - Monitor Spark jobs and cluster status
-- **Database**: Connect to PostgreSQL on port 5432 for direct data access
-- **Logs**: Use `docker-compose logs [service-name]` to view logs
-
-## 🚨 Troubleshooting
+## 🔧 Troubleshooting
 
 ### Common Issues
 
-1. **Port Conflicts**: Ensure ports 5432, 8080, 8501, and 7077 are available
-2. **Memory Issues**: Increase Docker memory limit to at least 4GB
-3. **File Permissions**: Ensure the `data/` directory is writable
+1. **Dashboard not loading**: Wait ~30 seconds for container to start
+2. **CSV not appearing**: Ensure proper column names (name, country, city, date)
+3. **Port conflicts**: Ensure port 8501 is available
 
 ### Useful Commands
 
 ```bash
-# View all service logs
-docker-compose logs
+# Check container status
+docker-compose ps
 
-# View specific service logs
-docker-compose logs streamlit
+# View detailed logs
+docker-compose logs dashboard
 
-# Restart services
+# Restart if stuck
 docker-compose restart
 
-# Scale Spark workers
-docker-compose up -d --scale spark-worker=2
-
-# Access database directly
-docker exec -it geopulse_postgres psql -U geopulse_user -d geopulse
+# Clean slate restart
+docker-compose down && docker-compose up -d
 ```
-
-## 🔄 Data Processing Flow
-
-1. **File Detection**: Watchdog monitors `data/input/` for new CSV files
-2. **Validation**: PySpark validates CSV schema and data quality
-3. **Transformation**: Data cleaning and standardization
-4. **Loading**: Insert/update records in PostgreSQL
-5. **Archival**: Move processed files to `data/processed/`
-6. **Visualization**: Streamlit dashboard refreshes every 30 seconds
 
 ## 🎯 Use Cases
 
-- **Customer Analytics**: Analyze client geographical distribution
-- **Market Research**: Understand regional market penetration
-- **Business Intelligence**: Real-time insights into customer base
-- **Data Pipeline**: Template for CSV-based ETL processes
+- **Client Analytics**: Visualize customer geographical distribution
+- **Market Research**: Analyze regional market penetration  
+- **Sales Reporting**: Track client acquisition by location
+- **Data Exploration**: Quick insights from CSV client data
 
-## 📊 Performance
+## � Performance
 
-- **Processing**: Can handle thousands of records per CSV file
-- **Scalability**: Horizontal scaling with additional Spark workers
-- **Real-time**: Near real-time dashboard updates (30-second refresh)
-- **Storage**: Efficient PostgreSQL indexing for fast queries
+- **Lightweight**: Single container, minimal resource usage
+- **Fast Loading**: Direct CSV reading, no database overhead
+- **Responsive**: Real-time updates, 10-second refresh cycle
+- **Scalable**: Handles thousands of client records efficiently
 
 ## 🤝 Contributing
 
 1. Fork the repository
 2. Create a feature branch
-3. Make your changes
-4. Add tests if applicable
-5. Submit a pull request
+3. Add your CSV files for testing
+4. Submit a pull request
+
+See [CONTRIBUTING.md](CONTRIBUTING.md) for detailed guidelines.
 
 ## 📄 License
 
@@ -212,10 +184,10 @@ This project is licensed under the MIT License.
 
 For questions or issues:
 1. Check the troubleshooting section
-2. Review Docker logs
-3. Verify CSV file format
-4. Ensure all ports are available
+2. Review the sample CSV format
+3. Verify Docker is running properly
+4. Create an issue on GitHub
 
 ---
 
-**GeoPulse** - Transform your client data into actionable insights! 🌍📊
+**GeoPulse** - Transform your CSV client data into beautiful insights! 🌍📊
