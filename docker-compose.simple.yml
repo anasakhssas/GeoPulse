@@ -1,0 +1,73 @@
+services:
+  # PostgreSQL Database
+  postgres:
+    image: postgres:15-alpine
+    container_name: geopulse_postgres
+    environment:
+      POSTGRES_DB: geopulse
+      POSTGRES_USER: geopulse_user
+      POSTGRES_PASSWORD: geopulse_password
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./postgres/init_clean.sql:/docker-entrypoint-initdb.d/init.sql
+    networks:
+      - geopulse_network
+
+  # Streamlit Dashboard (using pre-built image approach)
+  streamlit:
+    image: python:3.11-slim
+    container_name: geopulse_dashboard
+    working_dir: /app
+    environment:
+      - POSTGRES_HOST=postgres
+      - POSTGRES_DB=geopulse
+      - POSTGRES_USER=geopulse_user
+      - POSTGRES_PASSWORD=geopulse_password
+    ports:
+      - "8501:8501"
+    volumes:
+      - ./streamlit_app:/app
+    command: >
+      bash -c "
+        apt-get update && apt-get install -y postgresql-client &&
+        pip install --no-cache-dir streamlit pandas plotly psycopg2-binary numpy &&
+        streamlit run main.py --server.port=8501 --server.address=0.0.0.0
+      "
+    depends_on:
+      - postgres
+    networks:
+      - geopulse_network
+    restart: unless-stopped
+
+  # Simple Data Processor for CSV files
+  data-processor:
+    image: python:3.11-slim
+    container_name: geopulse_data_processor
+    working_dir: /app
+    environment:
+      - POSTGRES_HOST=postgres
+      - POSTGRES_DB=geopulse
+      - POSTGRES_USER=geopulse_user
+      - POSTGRES_PASSWORD=geopulse_password
+    volumes:
+      - ./data:/app/data
+      - ./simple_processor.py:/app/simple_processor.py
+    command: >
+      bash -c "
+        pip install --no-cache-dir pandas psycopg2-binary &&
+        python simple_processor.py
+      "
+    depends_on:
+      - postgres
+    networks:
+      - geopulse_network
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
+
+networks:
+  geopulse_network:
+    driver: bridge
