@@ -361,7 +361,7 @@ def main():
     # Footer
     st.sidebar.markdown("---")
     st.sidebar.markdown("**GeoPulse Dashboard** v2.0")
-    st.sidebar.markdown("Built with ❤️ using Streamlit")
+    st.sidebar.markdown("Built with Akhssas Anas using Streamlit")
     st.sidebar.markdown("[GitHub Repository](https://github.com/anasakhssas/GeoPulse)")
 
 if __name__ == "__main__":
